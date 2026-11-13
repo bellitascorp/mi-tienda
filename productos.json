@@ -1,0 +1,102 @@
+{
+  "catalogo": [
+    {
+      "id": "p1",
+      "nombre": "Polo Algodón Pima",
+      "descripcion_corta": "Polo suave y fresco de algodón pima peruano. Corte regular, ideal para todos los días.",
+      "precio_original": 89,
+      "precio_oferta": 69,
+      "categoria": "Polos",
+      "imagen_url": "https://picsum.photos/seed/polo1/600/750",
+      "colores": [
+        "Negro",
+        "Blanco",
+        "Azul"
+      ],
+      "tallas": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "stock": 12,
+      "orden": 1
+    },
+    {
+      "id": "p2",
+      "nombre": "Casaca Denim Clásica",
+      "descripcion_corta": "Casaca de denim resistente con forro interior suave. Un básico que combina con todo.",
+      "precio_original": 199,
+      "precio_oferta": 159,
+      "categoria": "Casacas",
+      "imagen_url": "https://picsum.photos/seed/casaca2/600/750",
+      "colores": [
+        "Azul"
+      ],
+      "tallas": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "stock": 3,
+      "orden": 2
+    },
+    {
+      "id": "p3",
+      "nombre": "Jogger Urbano",
+      "descripcion_corta": "Jogger elástico y liviano con bolsillos con cierre. Comodidad todo el día.",
+      "precio_original": 119,
+      "precio_oferta": 119,
+      "categoria": "Pantalones",
+      "imagen_url": "https://picsum.photos/seed/jogger3/600/750",
+      "colores": [
+        "Gris",
+        "Negro"
+      ],
+      "tallas": [
+        "S",
+        "M",
+        "L"
+      ],
+      "stock": 8,
+      "orden": 3
+    },
+    {
+      "id": "p4",
+      "nombre": "Vestido Lino Verano",
+      "descripcion_corta": "Vestido de lino fresco con cinturón ajustable. Perfecto para días calurosos.",
+      "precio_original": 149,
+      "precio_oferta": 109,
+      "categoria": "Vestidos",
+      "imagen_url": "https://picsum.photos/seed/vestido4/600/750",
+      "colores": [
+        "Beige",
+        "Verde"
+      ],
+      "tallas": [
+        "S",
+        "M",
+        "L"
+      ],
+      "stock": 0,
+      "orden": 4
+    }
+  ],
+  "diseno": {
+    "nombre_tienda": "BELLITAS",
+    "color_fondo": "#ededed",
+    "color_texto": "#100f0f",
+    "color_primario": "#dda6b4",
+    "fuente_principal": "'Courier New', monospace",
+    "banner_texto": "Envíos a todo el Perú · 10% de descuento en tu primera compra",
+    "banner_activo": false,
+    "whatsapp_numero": "51978267162"
+  },
+  "modulos_activos": {
+    "buscador_activo": true,
+    "filtros_avanzados": true,
+    "alertas_stock_bajo": true,
+    "modo_mantenimiento": false,
+    "whatsapp_flotante": true
+  }
+}
