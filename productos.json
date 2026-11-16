@@ -83,13 +83,13 @@
     }
   ],
   "diseno": {
-    "nombre_tienda": "BELLITAS",
-    "color_fondo": "#f7f7f7",
+    "nombre_tienda": "Bellitas",
+    "color_fondo": "#ffffff",
     "color_texto": "#000000",
-    "color_primario": "#d36480",
-    "fuente_principal": "Georgia, 'Times New Roman', serif",
+    "color_primario": "#d59fad",
+    "fuente_principal": "'Courier New', monospace",
     "banner_texto": "Envíos a todo el Perú · 10% de descuento en tu primera compra",
-    "banner_activo": true,
+    "banner_activo": false,
     "whatsapp_numero": "51920427780"
   },
   "modulos_activos": {
