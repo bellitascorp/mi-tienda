@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel de operador</title>
+<!-- Tailwind v4 (compila el CSS para producción si lo prefieres) -->
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style>:focus-visible{outline:3px solid #0f766e;outline-offset:2px}</style>
+</head>
+<body class="bg-slate-100 text-slate-900 text-base">
+
+<!-- ========== Acceso: configuración inicial o login ========== -->
+<section id="auth" class="min-h-dvh grid place-items-center p-4">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow p-6">
+    <h1 class="text-2xl font-extrabold mb-1">Panel de operador</h1>
+
+    <!-- Primera vez: crea contraseña y guarda el token SOLO en este navegador -->
+    <form id="fSetup" class="space-y-3" hidden>
+      <p class="text-sm text-slate-600">Primera configuración. Estos datos se guardan únicamente en este navegador (localStorage), nunca en productos.json.</p>
+      <label class="block text-sm font-semibold">Crea una contraseña (mín. 8 caracteres)
+        <input name="pwd" type="password" minlength="8" required autocomplete="new-password" class="mt-1 w-full min-h-12 rounded-xl border px-3 font-normal"></label>
+      <label class="block text-sm font-semibold">Usuario u organización de GitHub
+        <input name="owner" required class="mt-1 w-full min-h-12 rounded-xl border px-3 font-normal"></label>
+      <label class="block text-sm font-semibold">Repositorio
+        <input name="repo" required class="mt-1 w-full min-h-12 rounded-xl border px-3 font-normal"></label>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="block text-sm font-semibold">Rama
+          <input name="branch" value="main" required class="mt-1 w-full min-h-12 rounded-xl border px-3 font-normal"></label>
+        <label class="block text-sm font-semibold">Archivo
+          <input name="path" value="productos.json" required class="mt-1 w-full min-h-12 rounded-xl border px-3 font-normal"></label>
+      </div>
+      <label class="block text-sm font-semibold">Token de GitHub (fine-grained, solo este repo, permiso Contents: Read and write)
+        <input name="token" type="password" required autocomplete="off" class="mt-1 w-full min-h-12 rounded-xl border px-3 font-normal"></label>
+      <button class="w-full min-h-12 rounded-xl bg-teal-700 text-white font-bold">Guardar y entrar</button>
+    </form>
+
+    <form id="fLogin" class="space-y-3" hidden>
+      <label class="block text-sm font-semibold">Contraseña
+        <input name="pwd" type="password" required autocomplete="current-password" class="mt-1 w-full min-h-12 rounded-xl border px-3 font-normal"></label>
+      <button class="w-full min-h-12 rounded-xl bg-teal-700 text-white font-bold">Entrar</button>
+      <button type="button" id="reset" class="w-full min-h-11 text-sm text-slate-600 underline">Olvidé mi contraseña / borrar datos de acceso</button>
+    </form>
+    <p id="authErr" role="alert" class="mt-3 text-sm font-semibold text-red-700"></p>
+  </div>
+</section>
+
+<!-- ========== Workspace dividido ========== -->
+<div id="ws" class="grid lg:grid-cols-[minmax(0,28rem)_1fr] h-dvh" hidden>
+  <!-- Panel izquierdo: controles -->
+  <aside class="bg-white flex flex-col min-h-0 border-r">
+    <div role="tablist" aria-label="Secciones" class="grid grid-cols-5 border-b">
+      <button role="tab" data-tab="cat" class="min-h-12 font-bold">Catálogo</button>
+      <button role="tab" data-tab="dis" class="min-h-12 font-bold">Diseño</button>
+      <button role="tab" data-tab="mod" class="min-h-12 font-bold">Interruptores</button>
+      <button role="tab" data-tab="med" class="min-h-12 font-bold">Medios</button>
+      <button role="tab" data-tab="est" class="min-h-12 font-bold">Estado</button>
+    </div>
+    <div id="panel" role="tabpanel" class="flex-1 overflow-y-auto p-4"></div>
+    <div class="p-3 border-t space-y-2">
+      <p id="status" role="status" aria-live="polite" class="text-sm font-semibold min-h-5"></p>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="btnBackup" class="min-h-12 rounded-xl border-2 border-slate-300 font-bold">Descargar Backup JSON</button>
+        <button id="btnPublish" class="min-h-12 rounded-xl bg-teal-700 text-white font-bold">Guardar y publicar</button>
+      </div>
+      <button id="btnLogout" class="w-full min-h-11 text-sm text-slate-600 underline">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- Panel derecho: vista previa en vivo (usa el mismo index.html del cliente) -->
+  <section class="flex flex-col min-h-0 bg-slate-200">
+    <div class="flex items-center gap-2 p-2">
+      <span class="font-bold text-sm flex-1">Vista previa en vivo</span>
+      <button data-dev="390px" class="min-h-11 px-3 rounded-lg bg-white font-semibold">Móvil</button>
+      <button data-dev="100%" class="min-h-11 px-3 rounded-lg bg-white font-semibold">Escritorio</button>
+    </div>
+    <div class="flex-1 min-h-0 grid place-items-stretch justify-center px-2 pb-2">
+      <iframe id="pv" title="Vista previa de la tienda" src="index.html?preview=1" class="h-full bg-white rounded-xl shadow" style="width:390px;max-width:100%"></iframe>
+    </div>
+  </section>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

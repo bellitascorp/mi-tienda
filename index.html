@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tienda</title>
+<meta name="description" content="Tienda virtual: ropa con envío a todo el Perú. Pide por WhatsApp.">
+<!-- Tailwind v4. Para 100/100 en Lighthouse, compila el CSS (npx @tailwindcss/cli) y cambia este script por un <link> -->
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style>
+  :root{--bg:#fff;--tx:#111827;--pr:#0f766e;--prt:#fff;--ff:system-ui,sans-serif}
+  html{scrollbar-gutter:stable;scroll-behavior:auto}
+  html:has(dialog[open]){overflow:hidden}              /* bloquea el scroll de fondo: al cerrar vuelves exactamente donde estabas */
+  body{background:var(--bg);color:var(--tx);font-family:var(--ff);font-size:17px;line-height:1.5}
+  .btn-p{background:var(--pr);color:var(--prt)}
+  .card{background:color-mix(in srgb,var(--tx) 5%,var(--bg))}
+  article.card{content-visibility:auto;contain-intrinsic-size:auto 520px}
+  .chip{border:2px solid color-mix(in srgb,var(--tx) 30%,transparent)}
+  .chip[aria-checked=true]{background:var(--pr);color:var(--prt);border-color:var(--pr);box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--pr)}
+  .muted{color:color-mix(in srgb,var(--tx) 75%,var(--bg))}
+  :focus-visible{outline:3px solid var(--pr);outline-offset:2px}
+  .noscroll{scrollbar-width:none}.noscroll::-webkit-scrollbar{display:none}
+  dialog{color:var(--tx);background:var(--bg)}
+  h1,h2{font-family:var(--ft,var(--ff))}.px{font-family:var(--fp,var(--ff))}
+  @keyframes f{from{opacity:.3}to{opacity:1}}.fade{animation:f .25s ease-out}
+  @media (prefers-reduced-motion:reduce){.fade{animation:none}}
+</style>
+</head>
+<body>
+<a href="#catalogo" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:text-black focus:p-3">Saltar al catálogo</a>
+<div id="banner" class="btn-p text-center text-sm font-semibold px-4 py-2" hidden></div>
+
+<header class="sticky top-0 z-30 border-b" style="background:var(--bg);border-color:color-mix(in srgb,var(--tx) 15%,transparent)">
+  <div class="mx-auto max-w-6xl px-4 py-3 flex items-center gap-3">
+    <h1 id="nombreTienda" class="text-xl font-extrabold truncate">Tienda</h1>
+    <div id="buscadorWrap" class="flex-1">
+      <label for="q" class="sr-only">Buscar prendas</label>
+      <input id="q" type="search" placeholder="Buscar prendas…" autocomplete="off" class="w-full min-h-12 rounded-xl px-4 card border-2 border-transparent focus:border-[var(--pr)] outline-none">
+    </div>
+    <a href="admin.html" aria-label="Acceso de operador" class="grid place-items-center min-h-12 min-w-12 rounded-xl card"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
+    <button data-act="abrirCarrito" aria-label="Abrir bolsa" class="min-h-12 min-w-12 rounded-xl btn-p font-bold px-3">Bolsa <span id="cnt" class="ml-1 rounded-full bg-white/25 px-2 text-sm">0</span></button>
+  </div>
+  <div id="filtrosWrap" class="mx-auto max-w-6xl px-4 pb-3 flex items-center gap-3">
+    <nav id="pills" aria-label="Categorías" class="flex-1 flex gap-2 overflow-x-auto noscroll snap-x"></nav>
+    <label class="shrink-0 text-sm"><span class="sr-only">Ordenar por</span>
+      <select id="sort" class="min-h-11 rounded-xl card px-2">
+        <option value="orden">Destacados</option><option value="menor">Menor precio</option>
+        <option value="mayor">Mayor precio</option><option value="dto">Mayor descuento</option>
+      </select></label>
+  </div>
+</header>
+
+<main id="catalogo" class="mx-auto max-w-6xl px-4 py-5 pb-28">
+  <p id="avisoMant" class="mb-4 rounded-xl bg-amber-200 text-amber-950 p-3 font-semibold" hidden>Vista previa: el modo mantenimiento está activo. Tus clientes verán la pantalla de mantenimiento.</p>
+  <div id="grid" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5"></div>
+  <div id="vacio" class="text-center py-16" hidden>
+    <p class="text-2xl font-bold">No encontramos prendas</p><p class="muted mt-2">Prueba con otra palabra o categoría.</p>
+    <button data-act="limpiar" class="btn-p mt-5 min-h-12 px-6 rounded-xl font-bold">Limpiar filtros</button>
+  </div>
+</main>
+
+<div id="mant" class="fixed inset-0 z-50 grid place-items-center text-center p-8" style="background:var(--bg)" hidden>
+  <div><h2 class="text-3xl font-extrabold">Volvemos pronto</h2><p class="muted mt-3">Estamos actualizando la tienda. Gracias por tu paciencia.</p></div>
+</div>
+
+<dialog id="qv" aria-labelledby="qvT" class="m-auto w-[min(94vw,32rem)] max-h-[92dvh] rounded-2xl p-0 backdrop:bg-black/60"></dialog>
+<dialog id="cartD" aria-labelledby="cartT" class="fixed inset-y-0 right-0 m-0 ml-auto h-dvh max-h-none w-full max-w-md rounded-none p-0 backdrop:bg-black/60"></dialog>
+
+<!-- Botón flotante de bolsa: siempre a mano mientras sigues comprando -->
+<button id="pill" data-act="abrirCarrito" class="btn-p fixed right-4 bottom-4 z-20 min-h-14 px-5 rounded-full font-bold shadow-lg" hidden></button>
+<a id="wa" href="#" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp" hidden class="fixed left-4 bottom-4 z-20 grid place-items-center size-14 rounded-full bg-green-600 text-white text-2xl shadow-lg">✆</a>
+<div id="toast" role="status" aria-live="polite" class="fixed left-1/2 -translate-x-1/2 bottom-24 z-[60] w-[min(94vw,28rem)] pointer-events-none flex justify-center"></div>
+
+<script>
+'use strict';
+/* Registro de errores: se guarda en este equipo y se ve en el panel (Estado) */
+function logErr(m, w) { try { const a = JSON.parse(localStorage.getItem('err_log') || '[]'); a.push({ t: new Date().toISOString(), m: String(m).slice(0, 200), u: location.pathname + ' ' + String(w || '').slice(0, 80) }); localStorage.setItem('err_log', JSON.stringify(a.slice(-30))); } catch {} }
+addEventListener('error', e => logErr(e.message, e.filename + ':' + e.lineno));
+addEventListener('unhandledrejection', e => logErr(e.reason));
+/* ================= Utilidades ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n => 'S/. ' + (Number(n) % 1 ? Number(n).toFixed(2) : Number(n));
+const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const HEX = /^#[0-9a-f]{6}$/i;
+const isPreview = window.parent !== window;
+
+let D = null, cat = 'Todas', q = '', sel = {}, cart = [], qvId = null, savedY = 0;
+try { cart = JSON.parse(localStorage.getItem('carrito') || '[]'); } catch { cart = []; }
+const saveCart = () => { try { localStorage.setItem('carrito', JSON.stringify(cart)); } catch {} };
+const prod = id => D.catalogo.find(p => p.id === id);
+const mod = k => !!D?.modulos_activos?.[k];
+
+/* Colores: acepta ["Negro"] (antiguo) o [{nombre, imagen_url}] (foto propia por color) */
+const colores = p => (p.colores || []).map(c => typeof c === 'string' ? { nombre: c, imagen_url: p.imagen_url } : { nombre: c.nombre, imagen_url: c.imagen_url || p.imagen_url });
+const imgOf = (p, color) => (colores(p).find(c => c.nombre === color) || {}).imagen_url || p.imagen_url;
+function pick(p) {                                   // selección actual de la prenda (talla, color, cantidad)
+  const s = sel[p.id] ||= { talla: '', color: '', qty: 1 };
+  if (!(p.tallas || []).includes(s.talla)) s.talla = p.tallas?.[0] || '';
+  if (!colores(p).some(c => c.nombre === s.color)) s.color = colores(p)[0]?.nombre || '';
+  s.qty = Math.max(1, Math.min(s.qty, p.stock || 1));
+  return s;
+}
+
+/* ================= Carga ================= */
+async function load() {
+  try { let j = null; try { j = await (await fetch('/api/tienda')).json(); } catch {} if (!j?.catalogo) j = await (await fetch('productos.json?v=' + Date.now())).json(); D = j; refresh(); }
+  catch { $('#grid').innerHTML = '<p class="col-span-full text-center py-10">No pudimos cargar el catálogo. Recarga la página.</p>'; }
+}
+addEventListener('message', e => { if (e.origin === location.origin && e.data?.type === 'preview') { D = e.data.data; refresh(); } });
+function refresh() { cart = cart.filter(i => prod(i.id)); saveCart(); applyTheme(); render(); renderCart(); }
+
+/* ================= Tema y módulos ================= */
+function lum(h) { const [r,g,b] = [1,3,5].map(i => parseInt(h.substr(i,2),16)/255).map(c => c <= .03928 ? c/12.92 : ((c+.055)/1.055)**2.4); return .2126*r+.7152*g+.0722*b; }
+function applyTheme() {
+  const d = D.diseno, r = document.documentElement.style;
+  if (HEX.test(d.color_fondo)) r.setProperty('--bg', d.color_fondo);
+  if (HEX.test(d.color_texto)) r.setProperty('--tx', d.color_texto);
+  if (HEX.test(d.color_primario)) { r.setProperty('--pr', d.color_primario); r.setProperty('--prt', lum(d.color_primario) > .4 ? '#111' : '#fff'); }
+  if (d.fuente_principal) r.setProperty('--ff', d.fuente_principal);
+  $('#nombreTienda').textContent = d.nombre_tienda || 'Tienda'; document.title = d.nombre_tienda || 'Tienda';
+  // Tipografías por rol (títulos, textos, precios): se cargan solo las elegidas
+  const fam = [...new Set([d.fuente_titulo, d.fuente_cuerpo, d.fuente_precio].filter(n => /^[\w ]+$/.test(n || '')))];
+  if (fam.length) {
+    let l = $('#gf'); if (!l) { l = document.createElement('link'); l.id = 'gf'; l.rel = 'stylesheet'; document.head.appendChild(l); }
+    l.href = 'https://fonts.googleapis.com/css2?' + fam.map(n => 'family=' + encodeURIComponent(n) + ':wght@400;600;700').join('&') + '&display=swap';
+    if (d.fuente_cuerpo) r.setProperty('--ff', `'${d.fuente_cuerpo}',system-ui,sans-serif`);
+    r.setProperty('--ft', d.fuente_titulo ? `'${d.fuente_titulo}',serif` : 'var(--ff)'); r.setProperty('--fp', d.fuente_precio ? `'${d.fuente_precio}',sans-serif` : 'var(--ff)');
+  }
+  const nn = $('#nombreTienda'); nn.style.fontSize = (d.nombre_tamano || 20) + 'px'; nn.style.color = HEX.test(d.nombre_color) ? d.nombre_color : '';
+  const b = $('#banner'); b.textContent = d.banner_texto || ''; b.hidden = !(d.banner_activo && d.banner_texto);
+  const m = D.modulos_activos;
+  $('#buscadorWrap').hidden = !m.buscador_activo; $('#filtrosWrap').hidden = !m.filtros_avanzados;
+  $('#mant').hidden = !(m.modo_mantenimiento && !isPreview); $('#avisoMant').hidden = !(m.modo_mantenimiento && isPreview);
+  const wa = $('#wa'); wa.hidden = !m.whatsapp_flotante; wa.href = 'https://wa.me/' + String(d.whatsapp_numero || '').replace(/\D/g, '');
+}
+
+/* ================= Catálogo ================= */
+function visibles() {
+  const nq = norm(mod('buscador_activo') ? q : '');
+  let l = [...D.catalogo].sort((a, b) => a.orden - b.orden).filter(p => (!mod('filtros_avanzados') || cat === 'Todas' || p.categoria === cat)
+    && (!nq || norm(p.nombre + ' ' + p.categoria + ' ' + p.descripcion_corta).includes(nq)));
+  const s = $('#sort').value, dto = p => p.precio_original - p.precio_oferta;
+  if (mod('filtros_avanzados')) {
+    if (s === 'menor') l.sort((a, b) => a.precio_oferta - b.precio_oferta);
+    if (s === 'mayor') l.sort((a, b) => b.precio_oferta - a.precio_oferta);
+    if (s === 'dto') l.sort((a, b) => dto(b) - dto(a));
+  }
+  return l;
+}
+function tallaChips(p) {
+  if (!p.tallas?.length) return '';
+  const s = pick(p);
+  return `<div class="mt-2"><p class="text-sm font-semibold">Talla: <b>${esc(s.talla)}</b></p><div role="radiogroup" aria-label="Talla" class="flex flex-wrap gap-2 mt-1">${p.tallas.map(v =>
+    `<button type="button" role="radio" aria-checked="${s.talla === v}" data-act="opt" data-k="talla" data-id="${p.id}" data-v="${esc(v)}" class="chip min-h-11 min-w-11 px-2 rounded-lg font-semibold">${esc(v)}</button>`).join('')}</div></div>`;
+}
+/* Cada color es una miniatura de su foto: al tocarla cambia la foto principal */
+function colorChips(p) {
+  const cs = colores(p); if (!cs.length) return ''; const s = pick(p);
+  return `<div class="mt-2"><p class="text-sm font-semibold">Color: <b>${esc(s.color)}</b></p><div role="radiogroup" aria-label="Color" class="flex flex-wrap gap-2 mt-1">${cs.map(c =>
+    `<button type="button" role="radio" aria-checked="${s.color === c.nombre}" aria-label="${esc(c.nombre)}" title="${esc(c.nombre)}" data-act="opt" data-k="color" data-id="${p.id}" data-v="${esc(c.nombre)}"
+      class="chip size-11 rounded-lg overflow-hidden p-0"><img src="${esc(c.imagen_url)}" alt="" width="44" height="44" loading="lazy" decoding="async" class="size-full object-cover"></button>`).join('')}</div></div>`;
+}
+const stepper = p => `<div role="group" aria-label="Cantidad" class="mt-3 flex items-center justify-between gap-1">
+  <span class="text-sm font-semibold">Cantidad</span><div class="flex items-center gap-1">
+  <button type="button" data-act="q-" data-id="${p.id}" aria-label="Menos" class="chip size-11 rounded-lg text-xl font-bold">−</button>
+  <span data-qty="${p.id}" class="w-8 text-center font-extrabold" aria-live="polite">${pick(p).qty}</span>
+  <button type="button" data-act="q+" data-id="${p.id}" aria-label="Más" class="chip size-11 rounded-lg text-xl font-bold">+</button></div></div>`;
+function precios(p) {
+  const ah = p.precio_original - p.precio_oferta;
+  return `<p class="mt-1"><span class="text-xl font-extrabold px">${money(p.precio_oferta)}</span>${ah > 0 ? `<s class="muted text-sm ml-1">${money(p.precio_original)}</s>` : ''}</p>
+    ${ah > 0 ? `<p class="text-sm font-bold" style="color:var(--pr)">Ahorras ${money(ah)}</p>` : ''}`;
+}
+function stockMsg(p) {
+  if (p.stock <= 0) return '<p class="text-sm font-bold text-red-700">Agotado</p>';
+  if (mod('alertas_stock_bajo') && p.stock <= 3) return `<p class="text-sm font-bold text-amber-700">¡Solo quedan ${p.stock}!</p>`;
+  return '';
+}
+const addBtn = p => `<button data-act="add" data-id="${p.id}" ${p.stock <= 0 ? 'disabled' : ''} class="btn-p mt-3 w-full min-h-12 rounded-xl font-bold disabled:opacity-50">${p.stock <= 0 ? 'Agotado' : 'Agregar a la Bolsa'}</button>`;
+const opciones = p => p.stock > 0 ? tallaChips(p) + colorChips(p) + stepper(p) : '';
+
+function card(p, i = 9) {
+  return `<article data-card="${p.id}" class="card rounded-2xl overflow-hidden flex flex-col">
+    <button data-act="qv" data-id="${p.id}" class="block overflow-hidden aspect-[4/5]" aria-label="Vista rápida de ${esc(p.nombre)}">
+      <img data-main src="${esc(imgOf(p, pick(p).color))}" alt="${esc(p.nombre)} en color ${esc(pick(p).color)}" width="600" height="750" ${i < 2 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async"
+        class="size-full object-cover transition-transform duration-500 hover:scale-110 motion-reduce:transition-none"></button>
+    <div class="p-3 flex-1 flex flex-col"><h2 class="font-bold leading-tight"><button data-act="qv" data-id="${p.id}" class="text-left">${esc(p.nombre)}</button></h2>
+      ${precios(p)}${stockMsg(p)}${opciones(p)}<div class="mt-auto">${addBtn(p)}</div></div></article>`;
+}
+function render() {
+  const cats = ['Todas', ...new Set(D.catalogo.map(p => p.categoria).filter(Boolean))];
+  if (!cats.includes(cat)) cat = 'Todas';
+  $('#pills').innerHTML = cats.map(c => `<button data-act="cat" data-v="${esc(c)}" role="radio" aria-checked="${c === cat}" class="chip snap-start shrink-0 min-h-11 px-4 rounded-full font-semibold">${esc(c)}</button>`).join('');
+  const l = visibles(); $('#grid').innerHTML = l.map((p, i) => card(p, i)).join(''); $('#vacio').hidden = l.length > 0;
+}
+/* Cambia talla/color solo en la tarjeta tocada (sin tocar el resto ni el scroll) */
+function refreshCard(id, k) {
+  const p = prod(id), c = document.querySelector(`[data-card="${id}"]`);
+  if (c) { c.outerHTML = card(p); const n = document.querySelector(`[data-card="${id}"]`);
+    if (k === 'color') n.querySelector('[data-main]').classList.add('fade');
+    n.querySelector(`[data-k="${k}"][aria-checked="true"]`)?.focus({ preventScroll: true }); }
+  if ($('#qv').open && qvId === id) { renderQV(); const m = $('#qv');
+    if (k === 'color') m.querySelector('[data-main]').classList.add('fade');
+    m.querySelector(`[data-k="${k}"][aria-checked="true"]`)?.focus({ preventScroll: true }); }
+}
+
+/* ================= Vista rápida ================= */
+function renderQV() {
+  const p = prod(qvId); if (!p) return; const sc = $('#qv').firstElementChild?.scrollTop || 0;
+  $('#qv').innerHTML = `<div class="overflow-y-auto max-h-[92dvh]">
+    <img data-main src="${esc(imgOf(p, pick(p).color))}" alt="${esc(p.nombre)} en color ${esc(pick(p).color)}" width="600" height="750" class="w-full max-h-[45dvh] object-cover">
+    <div class="p-4"><div class="flex justify-between gap-3"><h2 id="qvT" class="text-xl font-extrabold">${esc(p.nombre)}</h2>
+    <button data-act="cerrar" aria-label="Cerrar vista rápida" class="min-h-11 min-w-11 text-2xl">✕</button></div>
+    ${precios(p)}${stockMsg(p)}<p class="mt-2 muted">${esc(p.descripcion_corta)}</p>${opciones(p)}${addBtn(p)}</div></div>`;
+  $('#qv').firstElementChild.scrollTop = sc;
+}
+
+/* ================= Carrito ================= */
+const totales = () => cart.reduce((t, i) => { const p = prod(i.id); t.total += p.precio_oferta * i.qty; t.ahorro += (p.precio_original - p.precio_oferta) * i.qty; t.uds += i.qty; return t; }, { total: 0, ahorro: 0, uds: 0 });
+const enBolsa = id => cart.filter(i => i.id === id).reduce((n, i) => n + i.qty, 0);
+function addToCart(id) {
+  const p = prod(id), s = pick(p), libre = p.stock - enBolsa(id);
+  if (libre <= 0) return toast('Ya tienes todo el stock disponible en tu bolsa');
+  const n = Math.min(s.qty, libre), it = cart.find(i => i.id === id && i.talla === s.talla && i.color === s.color);
+  it ? it.qty += n : cart.push({ id, talla: s.talla, color: s.color, qty: n });
+  saveCart(); renderCart();
+  s.qty = 1; document.querySelectorAll(`[data-qty="${id}"]`).forEach(x => x.textContent = 1);
+  if ($('#qv').open) $('#qv').close();               // vuelve a la tienda, en el mismo punto
+  toast(`✓ ${n}× ${p.nombre} (${[s.talla, s.color].filter(Boolean).join(' / ')}) en tu bolsa`, true);
+}
+function renderCart() {
+  const t = totales(); $('#cnt').textContent = t.uds;
+  const pill = $('#pill'); pill.hidden = !t.uds; pill.textContent = `Ver bolsa · ${t.uds} · ${money(t.total)}`;
+  const tag = (l, v) => v ? `<span class="card rounded-md px-2 py-0.5">${l}: <b>${esc(v)}</b></span>` : '';
+  const rows = cart.map((i, k) => { const p = prod(i.id); return `<li class="py-3 border-b" style="border-color:color-mix(in srgb,var(--tx) 15%,transparent)">
+    <div class="flex gap-3"><img src="${esc(imgOf(p, i.color))}" alt="${esc(p.nombre)} ${esc(i.color)}" width="80" height="100" class="w-20 h-24 object-cover rounded-lg">
+    <div class="flex-1 min-w-0"><p class="font-bold leading-tight">${esc(p.nombre)}</p>
+    <p class="mt-1 flex flex-wrap gap-1.5 text-sm">${tag('Talla', i.talla)}${tag('Color', i.color)}</p>
+    <p class="text-sm muted mt-1">${money(p.precio_oferta)} c/u</p></div></div>
+    <div class="mt-2 flex items-center justify-between gap-2"><div class="flex items-center gap-1">
+      <button data-act="menos" data-k="${k}" aria-label="Quitar una unidad" class="chip size-11 rounded-lg text-xl font-bold">−</button>
+      <span class="w-8 text-center font-extrabold" aria-live="polite">${i.qty}</span>
+      <button data-act="mas" data-k="${k}" aria-label="Agregar una unidad" class="chip size-11 rounded-lg text-xl font-bold">+</button></div>
+      <p class="font-extrabold">${money(p.precio_oferta * i.qty)}</p>
+      <button data-act="quitar" data-k="${k}" class="min-h-11 px-2 text-sm underline">Quitar</button></div></li>`; }).join('');
+  const inp = (n, l, ty, x = '') => `<label class="block text-sm font-semibold">${l}<input name="${n}" type="${ty}" required ${x} class="mt-1 w-full min-h-12 rounded-xl card px-3 border-2 border-transparent focus:border-[var(--pr)] outline-none font-normal"></label>`;
+  $('#cartD').innerHTML = `<div class="h-full flex flex-col">
+    <div class="flex items-center justify-between p-4 border-b"><h2 id="cartT" class="text-xl font-extrabold">Tu bolsa (${t.uds})</h2>
+    <button data-act="cerrar" aria-label="Cerrar bolsa" class="min-h-11 min-w-11 text-2xl">✕</button></div>
+    <div class="flex-1 overflow-y-auto px-4">${cart.length ? `<ul>${rows}</ul>` : '<p class="py-10 text-center muted">Tu bolsa está vacía.</p>'}</div>
+    ${cart.length ? `<form id="fPedido" class="p-4 border-t space-y-3 overflow-y-auto max-h-[55dvh]" novalidate>
+      ${t.ahorro > 0 ? `<p class="flex justify-between font-semibold" style="color:var(--pr)"><span>Estás ahorrando</span><span>${money(t.ahorro)}</span></p>` : ''}
+      <p class="flex justify-between text-xl font-extrabold"><span>Total</span><span>${money(t.total)}</span></p>
+      ${inp('nombre', 'Nombre', 'text', 'autocomplete="name"')}${inp('ciudad', 'Ciudad', 'text', 'autocomplete="address-level2"')}
+      ${inp('telefono', 'Teléfono', 'tel', 'autocomplete="tel" inputmode="tel"')}
+      <p id="err" class="text-sm font-semibold text-red-700" role="alert"></p>
+      <button class="w-full min-h-14 rounded-xl bg-green-600 text-white text-lg font-bold">Enviar pedido por WhatsApp</button></form>` : ''}</div>`;
+}
+/* Mensaje de WhatsApp ordenado. WhatsApp no dibuja tablas reales: cada prenda va en un bloque alineado con talla, color, cantidad y precios. */
+function pedidoWhatsApp(f) {
+  const n = String(D.diseno.whatsapp_numero || '').replace(/\D/g, ''), d = new Date(), t = totales();
+  const nro = 'PED-' + d.toISOString().slice(2, 10).replace(/-/g, '') + '-' + Math.floor(1000 + Math.random() * 9000);
+  const sep = '━━━━━━━━━━━━━━━━';
+  const items = cart.map((i, k) => { const p = prod(i.id);
+    return `*${k + 1}. ${p.nombre}*\n▫ Talla: ${i.talla || '—'}\n▫ Color: ${i.color || '—'}\n▫ Cantidad: ${i.qty}\n▫ Precio: ${money(p.precio_oferta)} c/u\n▫ Subtotal: *${money(p.precio_oferta * i.qty)}*`; }).join('\n\n');
+  const msg = [`🛍️ *NUEVO PEDIDO – ${D.diseno.nombre_tienda}*`, `N° de pedido: ${nro}`, `Fecha: ${d.toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' })}`, '',
+    sep, '👤 *DATOS DEL CLIENTE*', sep, `Nombre: ${f.nombre}`, `Ciudad: ${f.ciudad}`, `Teléfono: ${f.telefono}`, '',
+    sep, '📋 *DETALLE DEL PEDIDO*', sep, items, '',
+    sep, `Total de prendas: ${t.uds}`, t.ahorro > 0 ? `Ahorro: ${money(t.ahorro)}` : null, `💰 *TOTAL A PAGAR: ${money(t.total)}*`, sep, '',
+    'Quedo atento(a) para coordinar el pago y el envío. ¡Gracias!'].filter(x => x !== null).join('\n');
+  window.open(`https://wa.me/${n}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
+}
+/* Mecha escalable: conecta aquí Culqi / Niubiz / Mercado Pago / Stripe */
+async function procesarPagoPasarela(pedido) {
+  // TODO: const r = await fetch('/api/crear-pago', { method: 'POST', body: JSON.stringify(pedido) });
+  console.info('Pasarela no configurada. Pedido:', pedido); return { ok: false, motivo: 'pasarela_no_configurada' };
+}
+
+/* ================= Toast con acceso rápido a la bolsa ================= */
+let tt;
+function toast(t, ver) {
+  $('#toast').innerHTML = `<div class="pointer-events-auto rounded-xl bg-gray-900 text-white pl-4 pr-2 py-2 font-semibold shadow-lg flex items-center gap-3"><span>${esc(t)}</span>
+    ${ver ? '<button data-act="abrirCarrito" class="shrink-0 min-h-11 px-3 rounded-lg bg-white text-gray-900 font-bold">Ver bolsa</button>' : ''}</div>`;
+  clearTimeout(tt); tt = setTimeout(() => $('#toast').innerHTML = '', 3500);
+}
+
+/* ================= Diálogos: recuerdan y restauran tu posición ================= */
+function abrir(d) { if (!document.querySelector('dialog[open]')) savedY = scrollY; d.showModal(); }
+document.querySelectorAll('dialog').forEach(d => d.addEventListener('close', () => {
+  if (!document.querySelector('dialog[open]')) requestAnimationFrame(() => scrollTo({ top: savedY, behavior: 'instant' }));
+}));
+
+/* ================= Eventos ================= */
+const pre = new Set();                                // precarga las fotos de los colores al acercarse: el cambio es instantáneo
+document.addEventListener('pointerover', e => {
+  const c = e.target.closest('[data-card]'); if (!c || pre.has(c.dataset.card)) return;
+  pre.add(c.dataset.card); colores(prod(c.dataset.card)).forEach(x => { new Image().src = x.imagen_url; });
+}, { passive: true });
+
+document.addEventListener('click', e => {
+  if (e.target === $('#qv') || e.target === $('#cartD')) return e.target.close();
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const { act, id, k, v } = b.dataset, p = id && prod(id);
+  if (act === 'opt') { sel[id] = { ...pick(p), [k]: v }; refreshCard(id, k); }
+  if (act === 'q+' || act === 'q-') { const s = pick(p); s.qty = Math.max(1, Math.min(p.stock, s.qty + (act === 'q+' ? 1 : -1))); document.querySelectorAll(`[data-qty="${id}"]`).forEach(x => x.textContent = s.qty); }
+  if (act === 'add') addToCart(id);
+  if (act === 'qv') { qvId = id; renderQV(); abrir($('#qv')); }
+  if (act === 'cat') { cat = v; render(); }
+  if (act === 'limpiar') { cat = 'Todas'; q = ''; $('#q').value = ''; $('#sort').value = 'orden'; render(); }
+  if (act === 'abrirCarrito') { renderCart(); abrir($('#cartD')); }
+  if (act === 'cerrar') b.closest('dialog').close();
+  if (act === 'mas') { const i = cart[k]; if (enBolsa(i.id) < prod(i.id).stock) i.qty++; else toast('No hay más stock de esta prenda'); saveCart(); renderCart(); }
+  if (act === 'menos') { const i = cart[k]; if (--i.qty <= 0) cart.splice(k, 1); saveCart(); renderCart(); }
+  if (act === 'quitar') { cart.splice(k, 1); saveCart(); renderCart(); }
+});
+let tq; $('#q').addEventListener('input', e => { q = e.target.value; clearTimeout(tq); tq = setTimeout(render, 120); });
+$('#sort').addEventListener('change', render);
+document.addEventListener('submit', e => {
+  if (e.target.id !== 'fPedido') return; e.preventDefault();
+  const f = Object.fromEntries(new FormData(e.target)); Object.keys(f).forEach(k => f[k] = f[k].trim());
+  if (!f.nombre || !f.ciudad || !/^[0-9+ ]{7,15}$/.test(f.telefono)) { $('#err').textContent = 'Completa nombre, ciudad y un teléfono válido (solo números).'; return; }
+  pedidoWhatsApp(f);
+});
+
+load();
+</script>
+</body>
+</html>

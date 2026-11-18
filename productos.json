@@ -7,18 +7,13 @@
       "precio_original": 89,
       "precio_oferta": 69,
       "categoria": "Polos",
-      "imagen_url": "https://picsum.photos/seed/polo1/600/750",
+      "imagen_url": "https://picsum.photos/seed/polo-negro/600/750",
       "colores": [
-        "Negro",
-        "Blanco",
-        "Azul"
+        { "nombre": "Negro", "imagen_url": "https://picsum.photos/seed/polo-negro/600/750" },
+        { "nombre": "Blanco", "imagen_url": "https://picsum.photos/seed/polo-blanco/600/750" },
+        { "nombre": "Azul", "imagen_url": "https://picsum.photos/seed/polo-azul/600/750" }
       ],
-      "tallas": [
-        "S",
-        "M",
-        "L",
-        "XL"
-      ],
+      "tallas": ["S", "M", "L", "XL"],
       "stock": 12,
       "orden": 1
     },
@@ -29,15 +24,12 @@
       "precio_original": 199,
       "precio_oferta": 159,
       "categoria": "Casacas",
-      "imagen_url": "https://picsum.photos/seed/casaca2/600/750",
+      "imagen_url": "https://picsum.photos/seed/casaca-azul/600/750",
       "colores": [
-        "Azul"
+        { "nombre": "Azul", "imagen_url": "https://picsum.photos/seed/casaca-azul/600/750" },
+        { "nombre": "Negro", "imagen_url": "https://picsum.photos/seed/casaca-negra/600/750" }
       ],
-      "tallas": [
-        "M",
-        "L",
-        "XL"
-      ],
+      "tallas": ["M", "L", "XL"],
       "stock": 3,
       "orden": 2
     },
@@ -48,16 +40,12 @@
       "precio_original": 119,
       "precio_oferta": 119,
       "categoria": "Pantalones",
-      "imagen_url": "https://picsum.photos/seed/jogger3/600/750",
+      "imagen_url": "https://picsum.photos/seed/jogger-gris/600/750",
       "colores": [
-        "Gris",
-        "Negro"
+        { "nombre": "Gris", "imagen_url": "https://picsum.photos/seed/jogger-gris/600/750" },
+        { "nombre": "Negro", "imagen_url": "https://picsum.photos/seed/jogger-negro/600/750" }
       ],
-      "tallas": [
-        "S",
-        "M",
-        "L"
-      ],
+      "tallas": ["S", "M", "L"],
       "stock": 8,
       "orden": 3
     },
@@ -68,29 +56,25 @@
       "precio_original": 149,
       "precio_oferta": 109,
       "categoria": "Vestidos",
-      "imagen_url": "https://picsum.photos/seed/vestido4/600/750",
+      "imagen_url": "https://picsum.photos/seed/vestido-beige/600/750",
       "colores": [
-        "Beige",
-        "Verde"
+        { "nombre": "Beige", "imagen_url": "https://picsum.photos/seed/vestido-beige/600/750" },
+        { "nombre": "Verde", "imagen_url": "https://picsum.photos/seed/vestido-verde/600/750" }
       ],
-      "tallas": [
-        "S",
-        "M",
-        "L"
-      ],
-      "stock": 0,
+      "tallas": ["S", "M", "L"],
+      "stock": 5,
       "orden": 4
     }
   ],
   "diseno": {
-    "nombre_tienda": "Bellitas",
+    "nombre_tienda": "Mi Tienda",
     "color_fondo": "#ffffff",
-    "color_texto": "#000000",
-    "color_primario": "#d59fad",
-    "fuente_principal": "'Courier New', monospace",
+    "color_texto": "#111827",
+    "color_primario": "#0f766e",
+    "fuente_principal": "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
     "banner_texto": "Envíos a todo el Perú · 10% de descuento en tu primera compra",
-    "banner_activo": false,
-    "whatsapp_numero": "51920427780"
+    "banner_activo": true,
+    "whatsapp_numero": "51999999999"
   },
   "modulos_activos": {
     "buscador_activo": true,
